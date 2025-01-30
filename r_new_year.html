@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>祁煜的文字游戏</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 聊天容器 */
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 聊天记录 */
+        #chat-log {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: url('https://www.transparenttextures.com/patterns/soft-circle-scales.png');
+            background-size: cover;
+        }
+
+        /* 对话框 */
+        .dialogue p {
+            margin: 0;
+            padding: 10px 15px;
+            border-radius: 15px;
+            position: relative;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* 祁煜的对话框 */
+        .qi-yu {
+            background: #ff6f61;
+            color: white;
+            align-self: flex-start;
+            margin-right: auto;
+            margin-bottom: 10px;
+        }
+
+        .qi-yu::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #ff6f61 transparent transparent;
+            left: -10px;
+            top: 10px;
+        }
+
+        /* 玩家的对话框 */
+        .player {
+            background: #f5f5f5;
+            color: #333;
+            align-self: flex-end;
+            margin-left: auto;
+            margin-bottom: 10px;
+        }
+
+        .player::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #f5f5f5;
+            right: -10px;
+            top: 10px;
+        }
+
+        /* 姓名 */
+        .name {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        /* 选项 */
+        .options {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid #eee;
+        }
+
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ff6f61;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+
+        .option:hover {
+            background: #ff4a4a;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 海洋装饰 */
+        .ocean-decor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('https://www.transparenttextures.com/patterns/watercolor.png');
+            background-size: cover;
+            opacity: 0.3;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 聊天记录 -->
+        <div id="chat-log" class="dialogue"></div>
+
+        <!-- Part 1 选项 -->
+        <div id="options1" class="options" style="display:none;">
+            <div class="option" onclick="chooseOption('看你睡得香，舍不得叫你')">看你睡得香，舍不得叫你</div>
+            <div class="option" onclick="chooseOption('那你想要什么补偿？')">那你想要什么补偿？</div>
+            <div class="option" onclick="chooseOption('谁让你昨天大过年的还跟我顶嘴，不开心了')">谁让你昨天大过年的还跟我顶嘴，不开心了</div>
+        </div>
+
+        <!-- Part 2 选项 -->
+        <div id="options2" class="options" style="display:none;">
+            <div class="option" onclick="chooseOption2('祁煜！')">祁煜！</div>
+            <div class="option" onclick="chooseOption2('要是我说可以呢')">要是我说可以呢</div>
+            <div class="option" onclick="chooseOption2('你少胡乱幻想了')">你少胡乱幻想了</div>
+        </div>
+
+        <!-- 海洋装饰 -->
+        <div class="ocean-decor"></div>
+    </div>
+
+    <script>
+        let currentPart = 1; // 当前部分
+
+        // Part 1 的对话内容
+        const part1Dialogue = [
+            "我要来讨——债——了",
+            "你怎么早上起床不叫我，自己溜出去了？",
+            "醒来的时候发现怀里没有人，吓了一大跳。被子里、枕头下、床底下，都找了。哪里都没有，我差点就打电话给唐知理，求助说你失踪了。"
+        ];
+
+        // Part 2 的共通对话内容
+        const part2CommonDialogue = [
+            "你在哪？",
+            "我穿好衣服了，这就以百米冲刺的速度过来接你。",
+            "东西很重吧，我来拎包了。",
+            "当然，最主要的是——",
+            "我想你了。"
+        ];
+
+        // 显示祁煜的对话
+        function showQiYuDialogue(message, delay = 1000) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const chatLog = document.getElementById('chat-log');
+                    const name = document.createElement('div');
+                    name.className = 'name';
+                    name.textContent = '祁煜';
+                    chatLog.appendChild(name);
+
+                    const p = document.createElement('p');
+                    p.className = 'qi-yu';
+                    p.textContent = message;
+                    chatLog.appendChild(p);
+
+                    // 滚动到最新消息
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                    resolve();
+                }, delay);
+            });
+        }
+
+        // 显示玩家的对话
+        function showPlayerDialogue(message) {
+            const chatLog = document.getElementById('chat-log');
+            const p = document.createElement('p');
+            p.className = 'player';
+            p.textContent = message;
+            chatLog.appendChild(p);
+
+            // 滚动到最新消息
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // 逐条显示祁煜的对话
+        async function showDialogue(dialogueList) {
+            for (let i = 0; i < dialogueList.length; i++) {
+                await showQiYuDialogue(dialogueList[i]);
+            }
+        }
+
+        // 处理 Part 1 的选项
+        async function chooseOption(option) {
+            showPlayerDialogue(option); // 显示玩家的选择
+            document.getElementById('options1').style.display = 'none'; // 隐藏选项
+
+            let response = [];
+            switch (option) {
+                case '看你睡得香，舍不得叫你':
+                    response = [
+                        "下回不用舍不得",
+                        "早晨能在阳光中被你叫醒，是我曾经的浪漫幻想之一。",
+                        "嗯——要是能被吻醒，就更好了……"
+                    ];
+                    break;
+                case '那你想要什么补偿？':
+                    response = [
+                        "补偿？这么好心？",
+                        "真的给我补偿？",
+                        "不骗人？",
+                        "上次我们买的那个浴球只剩一个了，如果可以跟你一起用的话……"
+                    ];
+                    break;
+                case '谁让你昨天大过年的还跟我顶嘴，不开心了':
+                    response = [
+                        "我错了。",
+                        "TAT",
+                        "我真的错了。",
+                        "我不该说窗花上的图案是蛇。你说是鱼，就是鱼。还是两只纠缠相爱的情侣鱼。",
+                        "要是我们也能像窗花图案上的那样……"
+                    ];
+                    break;
+            }
+
+            // 显示祁煜的回复
+            await showDialogue(response);
+
+            // 进入 Part 2 选项
+            document.getElementById('options2').style.display = 'block';
+        }
+
+        // 处理 Part 2 的选项
+        async function chooseOption2(option) {
+            showPlayerDialogue(option); // 显示玩家的选择
+            document.getElementById('options2').style.display = 'none'; // 隐藏选项
+
+            let response = [];
+            switch (option) {
+                case '祁煜！':
+                    response = ["就是随便想想而已，别那么小气"];
+                    break;
+                case '要是我说可以呢':
+                    response = ["！！！", "///", "那我可就当真了。不许反悔。"];
+                    break;
+                case '你少胡乱幻想了':
+                    response = ["好了好了，随便想想而已。你难道就没想过？我不信。"];
+                    break;
+            }
+
+            // 显示祁煜的回复
+            await showDialogue(response);
+
+            // 进入 Part 2 共通线
+            await showDialogue(part2CommonDialogue);
+        }
+
+        // 开始游戏，显示 Part 1 对话
+        showDialogue(part1Dialogue).then(() => {
+            document.getElementById('options1').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
